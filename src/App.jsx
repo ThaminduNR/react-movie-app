@@ -1,20 +1,10 @@
-import { use, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Search from './components/Search';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
 import { getTrendingMovies, updateSearchCount } from './appwrite';
 import { useDebounce } from 'react-use';
-
-const API_BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-
-const API_OPTIONS = {
-  method: 'GET',
-  headers: {
-    accept: 'application/json',
-    Authorization: `Bearer ${API_KEY}`,
-  },
-};
+import { getMovies } from './api/movieApi';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +18,6 @@ function App() {
 
   useEffect(() => {
     fetchMovies(debounceSearchTerm);
-    //updateSearchCount(searchTerm, movieList);
   }, [debounceSearchTerm]);
 
   useEffect(() => {
@@ -40,13 +29,7 @@ function App() {
     setErrorMessage('');
 
     try {
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
-      const response = await fetch(endpoint, API_OPTIONS);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      const response = await getMovies(query);
       const data = await response.json();
 
       if (data?.response === 'false') {
@@ -55,7 +38,6 @@ function App() {
         return;
       }
       setMovieList(data.results || []);
-
       if (query && data.results.length > 0) {
         await updateSearchCount(query, data.results[0]);
       }
@@ -119,6 +101,7 @@ function App() {
             </ul>
           )}
         </section>
+        <section></section>
       </div>
     </main>
   );
