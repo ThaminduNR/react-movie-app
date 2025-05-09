@@ -60,7 +60,7 @@ function App() {
 
   return (
     <main>
-      <img src="./assets/hero-bg.png" className="pattern" alt="hero image" />
+      <img src="./assets/hero-bg1.png" className="pattern" alt="hero image" />
       <div className="wrapper">
         <header>
           <img src="/assets/hero.png" alt="hero image" />
@@ -99,8 +99,13 @@ function App() {
             </ul>
           )}
         </section>
-        <section></section>
       </div>
+      <footer className="mt-10 text-gray-500 text-sm w-full h-[150px] bg-black">
+        <div className="wrapper items-center">
+          <p>© 2025 Movie Finder. All rights reserved.</p>
+          <p>Powered by TMDB</p>
+        </div>
+      </footer>
     </main>
   );
 }
