@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import Search from './components/Search';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { getTrendingMovies, updateSearchCount } from './appwrite';
+import { useDebounce } from 'react-use';
 
 const API_BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -19,10 +21,19 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debounceSearchTerm, setDebounceSearchTerm] = useState('');
+  const [trendingMovies, setTrendingMovies] = useState([]);
+
+  useDebounce(() => setDebounceSearchTerm(searchTerm), 500, [searchTerm]);
 
   useEffect(() => {
-    fetchMovies(searchTerm);
-  }, [searchTerm]);
+    fetchMovies(debounceSearchTerm);
+    //updateSearchCount(searchTerm, movieList);
+  }, [debounceSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
@@ -44,6 +55,10 @@ function App() {
         return;
       }
       setMovieList(data.results || []);
+
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       console.error('Error fetching movies:', error);
       setErrorMessage(
@@ -54,22 +69,41 @@ function App() {
     }
   };
 
+  const loadTrendingMovies = async () => {
+    try {
+      const result = await getTrendingMovies();
+      setTrendingMovies(result);
+    } catch (error) {
+      console.error('Error fetching trending movies:', error);
+    }
+  };
+
   return (
     <main>
-      <img
-        src="./public/assets/hero-bg.png"
-        className="pattern"
-        alt="hero image"
-      />
+      <img src="./assets/hero-bg.png" className="pattern" alt="hero image" />
       <div className="wrapper">
         <header>
-          <img src="./public/assets/hero.png" alt="hero image" />
+          <img src="/assets/hero.png" alt="hero image" />
           <h1>
             Find <span className="text-gradient">Movies</span> You'll Enjoy
             Without the Hassle
           </h1>
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
+
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="all-movies">
           <h2 className="mt-[30px]">Movie List</h2>
