@@ -22,6 +22,28 @@ function App() {
     loadTrendingMovies();
   }, []);
 
+  useEffect(() => {
+    const scrollInterval = setInterval(() => {
+      const trendingSection = document.querySelector('.trending ul');
+      if (trendingSection) {
+        trendingSection.scrollBy({
+          left: 200, // Adjust the scroll amount as needed
+          behavior: 'smooth',
+        });
+
+        // Reset scroll position if at the end
+        if (
+          trendingSection.scrollLeft + trendingSection.offsetWidth >=
+          trendingSection.scrollWidth
+        ) {
+          trendingSection.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    }, 3000); // Adjust the interval time as needed (e.g., 3000ms = 3 seconds)
+
+    return () => clearInterval(scrollInterval); // Cleanup on component unmount
+  }, []);
+
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
